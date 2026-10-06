@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <!-- Required by the platform, not by this app. Capacitor serves the bundled web
+         assets from a loopback HTTP server inside the WebView, so Android will not load
+         the app without it. The app itself makes no outbound requests: it is local
+         only, and the web-push path is switched off on native because WebView has no
+         Push API. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Android 13+ (API 33) made notifications opt-in at runtime. Without this the
+         OS silently drops every scheduled reminder, and the app cannot ask for it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Android 12+ (API 31) refuses exact alarms by default, and a 5-minute warning
+         that arrives ten minutes late is not a warning. This is the grantable form;
+         the stricter USE_EXACT_ALARM is reserved for alarm-clock apps and is refused by
+         Play. Users on 12+ may revoke it in system settings, in which case Android
+         falls back to inexact delivery and reminders arrive late rather than not at all. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Every reminder in the APK is handed to the OS ahead of time rather than fired
+         by JavaScript while the app happens to be running, because Android will kill a
+         backgrounded WebView. That also means a reboot silently discards the entire
+         queue, so without this the day's reminders would simply stop existing after a
+         restart until the app was opened again. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+</manifest>

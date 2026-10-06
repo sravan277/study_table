@@ -1,0 +1,1333 @@
+/* ==========================================================================
+   Day Dial — design system
+
+   The subject here is a measuring instrument, so the visual language is a
+   machined gauge rather than a web dashboard: graphite panels, hairline rules,
+   backlit arcs, and monospace numerals that never reflow.
+
+   Naming is strictly prefixed per component (.dial__, .dock__, .rail__) so
+   rules can never collide the way they do when stylesheets are written as one
+   flat list of generic selectors.
+   ========================================================================== */
+
+:root {
+  /* --- surfaces: a stack of graphite, not a stack of cards --- */
+  --ink: #0b0f14;
+  --ink-deep: #070a0e;
+  --panel: #141a22;
+  --panel-raised: #1b232d;
+  --hairline: #2a3542;
+  --hairline-soft: #1f2833;
+
+  /* --- type --- */
+  --text: #e8eef5;
+  --text-dim: #9aa9ba;
+  --text-faint: #6b7a8c;
+
+  /* --- categories. One palette, defined once. --- */
+  --study: #4f6fe8;
+  --exercise: #2fb98c;
+  --hobby: #e8973f;
+  --life: #63748a;
+  --alarm: #f2544b;
+  --water: #49c6e5;
+
+  /* --- geometry --- */
+  --gap: 18px;
+  --radius: 3px; /* deliberately tight: this is equipment, not an app icon */
+  --dial-size: clamp(320px, 46vw, 640px);
+
+  /* --- motion. One scale, used everywhere. --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --tick: 250ms;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--ink);
+  /* A single very faint radial lift so the dial has something to sit on. This is
+     lighting, not decoration. */
+  background-image: radial-gradient(ellipse 70% 55% at 50% -10%, #16202b 0%, transparent 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-display), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "ss01", "cv01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Every numeral on this page is monospaced and tabular. Without this a running
+   clock reflows the layout four times a second. */
+.mono {
+  font-family: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* ---------------------------------------------------------------- shell --- */
+
+.shell {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 26px clamp(16px, 3vw, 40px) 64px;
+}
+
+/* --- header: an instrument nameplate, not a nav bar --- */
+.plate {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.plate__mark {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.plate__rule {
+  flex: 1;
+  min-width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--hairline), transparent);
+}
+
+.plate__date {
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.plate__zone {
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Reads as a nameplate stamp rather than a tab: same uppercase tracking as the zone, no
+   chrome until hovered. The underline on focus is what makes it reachable by keyboard. */
+.plate__link {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.plate__link:hover {
+  color: var(--text);
+  border-bottom-color: var(--hairline);
+}
+
+.plate__link:focus-visible {
+  color: var(--text);
+  border-bottom-color: var(--lit);
+}
+
+/* --- status readouts: small labelled lamps --- */
+.lamps {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.lamp--action {
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.lamp--action:hover {
+  border-color: var(--text-faint);
+  color: var(--text);
+}
+
+.lamp:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: 2px;
+}
+
+.lamp__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  flex: none;
+}
+
+.lamp__dot--on {
+  background: var(--exercise);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--exercise) 70%, transparent);
+}
+
+.lamp__dot--warn {
+  background: var(--hobby);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--hobby) 70%, transparent);
+}
+
+.lamp__dot--off {
+  background: var(--life);
+}
+
+/* ------------------------------------------------------------- water ------ */
+
+.water {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 12px 5px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.water__glass {
+  position: relative;
+  width: 20px;
+  height: 26px;
+  flex: none;
+  border: 1.5px solid color-mix(in srgb, var(--water) 45%, transparent);
+  border-top-width: 3px;
+  border-radius: 2px 2px 7px 7px;
+  overflow: hidden;
+}
+
+.water__fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--water) 85%, white), var(--water));
+  transition: height 600ms var(--ease-out);
+}
+
+/* A standing ripple on the surface of the water. One ambient animation is
+   acceptable here: it is the only thing in the app that moves on its own, and
+   water is the one thing that ought to. */
+.water__fill::after {
+  content: "";
+  position: absolute;
+  inset: -2px 0 auto 0;
+  height: 3px;
+  background: color-mix(in srgb, var(--water) 60%, white);
+  animation: water-drift 3.4s var(--ease-in-out) infinite;
+}
+
+@keyframes water-drift {
+  0%,
+  100% {
+    transform: translateX(-30%);
+  }
+  50% {
+    transform: translateX(30%);
+  }
+}
+
+.water__count {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+.water__next {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------- hero ------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+  padding-top: clamp(24px, 4vw, 44px);
+}
+
+.hero__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------- dial ------- */
+
+.dial {
+  position: relative;
+  width: var(--dial-size);
+  height: var(--dial-size);
+  flex: none;
+}
+
+.dial__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* The dim backing channel. One full-ring stroke, revealed per segment with
+   dashoffset — see src/lib/geometry.ts for why `d` is never animated. */
+.dial__track {
+  fill: none;
+  stroke-width: var(--band);
+  stroke-linecap: butt;
+  opacity: 0.16;
+  transition: stroke-dashoffset var(--tick) linear, opacity 300ms var(--ease-out);
+}
+
+/* The lit band. Focus only. This is the number that matters, so it is the only
+   thing on the dial with a glow. */
+.dial__lit {
+  fill: none;
+  stroke-width: var(--band);
+  stroke-linecap: butt;
+  transition: stroke-dashoffset var(--tick) linear, stroke 400ms var(--ease-out), opacity 300ms var(--ease-out);
+}
+
+/* Elapsed but unlit. Butt caps are load-bearing: `round` turns every dash of a long
+   dasharray into a visible disc, which scattered translucent circles over the dial.
+   Deliberately NOT a dashed hatch either — `stroke-dasharray` already carries the
+   band's extent, and a CSS dash pattern would override that attribute and smear the
+   texture across the whole arc. The unstarted/paused split is the ledger's job. */
+.dial__waste {
+  fill: none;
+  stroke-width: var(--band);
+  stroke-linecap: butt;
+  opacity: 0.3;
+  transition: stroke-dashoffset var(--tick) linear, opacity 300ms var(--ease-out);
+}
+
+/* The hard red rim on a block that ended unmet. Outside the band, so it never competes
+   with the lit arc and never costs the slice its category colour. */
+.dial__rim {
+  fill: none;
+  stroke-width: 3px;
+  stroke-linecap: butt;
+  opacity: 0.95;
+  animation: rim-breathe 3.2s var(--ease-in-out) infinite;
+}
+
+/* The only ongoing motion on the dial, and it is on the failure state only. If
+   everything is missed, the ring pulses; if nothing is, the dial is still. */
+@keyframes rim-breathe {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.dial__slice {
+  cursor: pointer;
+  outline: none;
+}
+
+.dial__hit {
+  fill: transparent;
+  /* `pointer-events: all` rather than `fill: transparent` — it ignores fill,
+     stroke AND visibility, so no stylesheet reset can make a slice unclickable. */
+  pointer-events: all;
+}
+
+/* Hover and focus lift the segment out of the ring rather than tinting it, so
+   the change is legible without relying on colour alone. */
+.dial__hover {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2px;
+  opacity: 0;
+  transition: opacity 180ms var(--ease-out);
+  pointer-events: none;
+}
+
+.dial__slice:hover .dial__hover,
+.dial__slice:focus-visible .dial__hover {
+  opacity: 0.45;
+}
+
+.dial__slice--selected .dial__hover {
+  opacity: 0.9;
+}
+
+.dial__slice--selected .dial__lit {
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.dial__slice:focus-visible .dial__hover {
+  opacity: 1;
+  stroke-width: 3px;
+}
+
+.dial__gauge {
+  /* The 30-minute grille. Structural, not decorative: it is the dial's scale. */
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1px;
+  opacity: 0.55;
+}
+
+.dial__gauge--major {
+  stroke: var(--text-faint);
+  opacity: 0.8;
+}
+
+/* 08:30: where the day starts. The only labelled mark on the dial, because it is the
+   only one with a meaning rather than a value. */
+.dial__origin line {
+  stroke: var(--text-dim);
+  stroke-width: 2px;
+}
+
+.dial__origin-label {
+  fill: var(--text-faint);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.dial__needle {
+  stroke: #fff;
+  stroke-width: 2px;
+  opacity: 1;
+  pointer-events: none;
+  will-change: transform; /* the one property where will-change is compositor-honest */
+}
+
+.dial__needle-cap {
+  fill: #fff;
+  pointer-events: none;
+}
+
+/* Overnight there is no day to point into, so the needle retreats to the origin
+   instead of sweeping a quarter turn backwards. */
+.dial__needle--parked {
+  opacity: 0.25;
+}
+
+/* --- the hole: elapsed, and what you are in the middle of --- */
+.dial__hub {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 18%;
+}
+
+.dial__now-label {
+  font-size: clamp(10px, 1.1vw, 12px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.dial__now-block {
+  font-size: clamp(15px, 1.9vw, 22px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--text);
+  max-width: 100%;
+}
+
+.dial__now-detail {
+  font-size: clamp(10px, 1.05vw, 12px);
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+/* ------------------------------------------------------------- clock ------ */
+
+.clock {
+  margin-top: clamp(14px, 2.2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.clock__digits {
+  font-size: clamp(38px, 6.4vw, 74px);
+  font-weight: 500;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.clock__colon {
+  color: var(--text-faint);
+  animation: clock-blink 2s steps(1, end) infinite;
+}
+
+@keyframes clock-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.28;
+  }
+}
+
+.clock__ms {
+  font-size: 0.34em;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}
+
+.clock__caption {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* The running progress rule beneath the clock: today against the full day. */
+.daybar {
+  margin-top: 4px;
+  width: min(100%, 420px);
+  height: 3px;
+  background: var(--hairline-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.daybar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--study), color-mix(in srgb, var(--study) 40%, var(--water)));
+  transition: width var(--tick) linear;
+}
+
+.daybar__marks {
+  display: flex;
+  justify-content: space-between;
+  width: min(100%, 420px);
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------- dock ------- */
+
+.dock {
+  position: sticky;
+  top: 24px;
+  min-height: 200px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel), var(--ink-deep));
+  overflow: hidden;
+}
+
+/* Vertical alignment cue: a hairline on the dock's left edge marks roughly where
+   the selected slice sits on the dial, so "to the right of it" is literal. */
+.dock__pointer {
+  position: absolute;
+  left: 0;
+  width: 2px;
+  background: var(--accent, var(--study));
+  transition: top 420ms var(--ease-out), background 300ms var(--ease-out);
+}
+
+.dock__empty {
+  padding: 26px 22px;
+}
+
+.dock__empty-head {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.dock__next {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.dock__next-when {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.dock__list {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline-soft);
+}
+
+.dock__list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.dock__swatch {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 1px;
+}
+
+/* Each row in the idle list is a control, so it says so with the same affordance as
+   every other control here rather than looking like static text that happens to
+   react. */
+.dock__pick {
+  all: unset;
+  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock__pick:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.dock__pct {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.dock__pct--none {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.dock__time {
+  margin-left: auto;
+  color: var(--text-faint);
+}
+
+/* --- the active timer panel --- */
+.dock__panel {
+  padding: 20px 22px 22px;
+  animation: dock-in 420ms var(--ease-out) both;
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dock__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.dock__swatch--lg {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.dock__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.dock__window {
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+}
+
+.dock__readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 6px;
+}
+
+.dock__big {
+  font-size: clamp(30px, 3.6vw, 40px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.dock__big--alarm {
+  color: var(--alarm);
+}
+
+.dock__big--lit {
+  color: var(--study);
+}
+
+.dock__big-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: right;
+}
+
+/* The lit/unlit bar inside the dock. Same language as the dial. */
+.dock__bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--hairline-soft);
+  overflow: hidden;
+}
+
+.dock__bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--tick) linear, background 400ms var(--ease-out);
+}
+
+/* --- the accounting: the reason this app exists, so it is itemised --- */
+.ledger {
+  margin: 18px 0 0;
+  border-top: 1px solid var(--hairline-soft);
+}
+
+.ledger__row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+  font-size: 12px;
+}
+
+.ledger__row--total {
+  border-bottom: none;
+  padding-top: 10px;
+}
+
+.ledger__key {
+  color: var(--text-dim);
+}
+
+.ledger__row--total .ledger__key {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ledger__val {
+  margin-left: auto;
+  color: var(--text);
+}
+
+.ledger__val--waste {
+  color: var(--alarm);
+}
+
+.ledger__note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-faint);
+}
+
+/* --- controls --- */
+.dock__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  flex: 1 1 auto;
+  min-width: 88px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel-raised);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+.btn:hover:not(:disabled) {
+  background: #232d39;
+  border-color: var(--text-faint);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent, var(--study));
+  border-color: transparent;
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent, var(--study)) 85%, white);
+  border-color: transparent;
+}
+
+.btn--danger {
+  color: var(--alarm);
+}
+
+.btn--ghost {
+  flex: 0 0 auto;
+  min-width: 0;
+  background: transparent;
+}
+
+.dock__gate {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+/* A missed block breathes. This is the one place the alarm animates on its own,
+   and it is deliberate: it should be the only thing on screen that moves while
+   you are not touching anything. */
+.dock__panel--missed {
+  animation: dock-in 420ms var(--ease-out) both, missed-pulse 2.6s var(--ease-in-out) 600ms infinite;
+}
+
+@keyframes missed-pulse {
+  0%,
+  100% {
+    box-shadow: inset 3px 0 0 var(--alarm);
+  }
+  50% {
+    box-shadow: inset 3px 0 0 var(--alarm), inset 0 0 22px color-mix(in srgb, var(--alarm) 22%, transparent);
+  }
+}
+
+/* ------------------------------------------------------------- rail ------- */
+
+.rail {
+  margin-top: clamp(24px, 3.2vw, 40px);
+  border-top: 1px solid var(--hairline);
+  padding-top: 20px;
+}
+
+.rail__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.rail__title {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.rail__scale {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.rail__track {
+  position: relative;
+  height: 46px;
+  display: flex;
+  gap: 2px;
+  background: var(--ink-deep);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.rail__seg {
+  position: relative;
+  min-width: 0;
+  background: color-mix(in srgb, var(--seg-color) 14%, transparent);
+  border-left: 1px solid var(--hairline);
+  cursor: pointer;
+  padding: 0;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  transition: background 200ms var(--ease-out);
+  overflow: hidden;
+}
+
+.rail__seg:first-child {
+  border-left: none;
+}
+
+.rail__seg:hover {
+  background: color-mix(in srgb, var(--seg-color) 30%, transparent);
+}
+
+.rail__seg:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: -2px;
+}
+
+/* The fill inside the rail segment mirrors the dial: dim is planned, lit is focus. */
+.rail__seg-fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: var(--seg-color);
+  opacity: 0.5;
+  transition: height var(--tick) linear;
+}
+
+.rail__seg-lit {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--seg-color);
+}
+
+.rail__seg--missed {
+  background: color-mix(in srgb, var(--alarm) 18%, transparent);
+}
+
+.rail__seg--missed .rail__seg-fill {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--alarm) 0 3px,
+    transparent 3px 7px
+  );
+  opacity: 0.55;
+}
+
+.rail__seg--done {
+  background: color-mix(in srgb, var(--seg-color) 26%, transparent);
+}
+
+.rail__seg--active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--seg-color) 65%, transparent);
+}
+
+/* Selection is drawn as a bracket above and below the segment rather than an outline,
+   because an outline on a 3px-wide segment is invisible. */
+.rail__seg--selected::before,
+.rail__seg--selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--text);
+}
+
+.rail__seg--selected::before {
+  top: 0;
+}
+
+.rail__seg--selected::after {
+  bottom: 0;
+}
+
+.rail__axis {
+  position: relative;
+  height: 14px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* Absolutely positioned rather than given a percentage width. Percentage widths on
+   flex items stack, because each span is a sibling laid out in sequence — nine labels
+   of h/24 width each summed to 108% of the track and pushed the page 1250px wide.
+   Absolute placement puts each label at its true time offset instead. */
+.rail__axis span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.rail__axis span:first-child {
+  transform: none;
+}
+
+.rail__axis span:last-child {
+  transform: translateX(-100%);
+}
+
+/* ------------------------------------------------------------- stats ------ */
+
+.stats {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  background: var(--hairline-soft);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stat {
+  background: var(--ink);
+  padding: 14px 16px;
+}
+
+.stat__label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+
+.stat__value {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat__value--alarm {
+  color: var(--alarm);
+}
+
+.stat__value--lit {
+  color: var(--study);
+}
+
+.stat__sub {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------- legend ----- */
+
+.legend {
+  margin-top: 20px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* ------------------------------------------------------------- toasts ----- */
+
+.toasts {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(360px, calc(100vw - 40px));
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--toast-accent, var(--study));
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+  padding: 12px 14px;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 45%);
+  animation: toast-in 380ms var(--ease-out) both;
+}
+
+.toast--out {
+  animation: toast-out 220ms var(--ease-in-out) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+.toast__title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 3px;
+}
+
+.toast__body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.toast__action {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--toast-accent, var(--study));
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--toast-accent, var(--study));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.toast__action:hover {
+  background: color-mix(in srgb, var(--toast-accent, var(--study)) 18%, transparent);
+}
+
+.toast__action:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: 2px;
+}
+
+.toast__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.toast__close:hover {
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------- misc ------- */
+
+.hint {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+
+.hint code {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  color: var(--text);
+  background: var(--panel-raised);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.hint a {
+  color: var(--water);
+  text-underline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only-focusable:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* --------------------------------------------------------- responsive ----- */
+
+@media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dock {
+    position: static;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* On one column the "right of the slice" cue cannot work, so it turns into a
+     top edge marker instead. */
+  .dock__pointer {
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --dial-size: min(94vw, 420px);
+  }
+
+  .shell {
+    padding: 18px 14px 48px;
+  }
+
+  .clock__digits {
+    font-size: clamp(34px, 12vw, 52px);
+  }
+
+  .rail__track {
+    height: 38px;
+  }
+
+  /* Nine hour marks do not fit across a phone. Drop every other one, which leaves
+     08:30 / 12:00 / 16:00 / 20:00 / 24:00 — still evenly spaced, still enough to
+     locate any segment. Before this, 08:30 and 10:00 overlapped and rendered as
+     "08:310:00". */
+  .rail__axis span:nth-child(even) {
+    display: none;
+  }
+
+  .toasts {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}
+
+/* ------------------------------------------------------- reduced motion --- */
+/* Motion answers action, so with reduced motion we keep state changes legible
+   but remove everything that travels. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .clock__colon,
+  .water__fill::after,
+  .dock__panel--missed {
+    animation: none !important;
+  }
+
+  .dial__panel--missed,
+  .dock__panel--missed {
+    box-shadow: inset 3px 0 0 var(--alarm);
+  }
+}

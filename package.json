@@ -1,0 +1,45 @@
+{
+  "name": "study-table",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Day Dial — a day-planning instrument with a 24-hour dial, per-block focus timers and push notifications",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "serve": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server.ps1 start",
+    "serve:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server.ps1 stop",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "verify": "node scripts/verify.mjs",
+    "check": "npm run lint && npm run typecheck",
+    "vapid": "node scripts/gen-vapid.mjs",
+    "db:push": "node scripts/db-push.mjs",
+    "export:static": "node scripts/export-static.mjs",
+    "cap:sync": "cap sync android",
+    "apk": "node scripts/build-apk.mjs",
+    "apk:release": "node scripts/build-apk.mjs --release"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@supabase/supabase-js": "^2.58.0",
+    "next": "^16.3.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
+    "eslint": "^9",
+    "eslint-config-next": "^16.3.8",
+    "playwright": "^1.63.0",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,525 @@
+/* ==========================================================================
+   Logs — the archive
+
+   The same instrument, pointed at a reading room instead of a stage. The dial's
+   palette, its hairlines, its mono numerals, its tight radius. Nothing new is
+   invented here: every colour below already exists as a token in globals.css, and
+   a hue the archive had never used before would read as new meaning.
+
+   Naming is prefixed `.logs__` for the reason the rest of the stylesheet is:
+   these rules cannot collide with the dial's. A handful of generic classes
+   (.shell, .stat, .ledger, .btn, .hint, .mono) are reused on purpose — they
+   already describe the right thing and duplicating them under a new name would
+   be the opposite of restraint.
+
+   Only two genuinely local measurements are declared as variables. Colours are
+   never redefined; if a value is needed here it is already a token.
+   ========================================================================== */
+
+.logs {
+  /* Narrower than .shell's 1500px. This is a column of rows meant to be read top
+     to bottom, and a 1500px-wide row of numbers is a table nobody scans. */
+  --logs-column: 940px;
+  --logs-bar: 4px;
+}
+
+.shell.logs {
+  max-width: var(--logs-column);
+}
+
+/* --------------------------------------------------------------- header --- */
+
+.logs__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Same affordance as every other control in the app: a quiet uppercase label that
+   lifts on hover and draws the standard ring on focus. */
+.logs__back {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  transition: color 160ms var(--ease-out);
+}
+
+/* Drawn rather than typed. A glyph depends on the font and on the platform's
+   glyph coverage — two variables for something that is three lines of border. */
+.logs__back::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-left: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.logs__back:hover {
+  color: var(--text);
+}
+
+.logs__back:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.logs__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* The hairline between the title and the count, exactly as on the dial's
+   nameplate. `.rail__scale` would do the same job but borrowing a rail class
+   here would tie the two sections together in the stylesheet. */
+.logs__rule {
+  flex: 1;
+  min-width: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--hairline), transparent);
+}
+
+.logs__count {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------- live card --- */
+
+.logs__live {
+  margin-top: clamp(20px, 3vw, 30px);
+  border: 1px solid var(--hairline);
+  /* Cobalt, because on the dial cobalt means "focus is accruing here", and that
+     is precisely what distinguishes this card from a finished one. */
+  border-left: 2px solid var(--study);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+/* ---------------------------------------------------------------- marks ---- */
+
+.logs__marks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logs__chip {
+  --chip-color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.logs__chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--chip-color);
+}
+
+.logs__chip--live {
+  --chip-color: var(--study);
+  color: var(--text);
+}
+
+.logs__chip--perfect {
+  --chip-color: var(--exercise);
+  color: var(--text);
+}
+
+.logs__chip--missed {
+  --chip-color: var(--alarm);
+  color: var(--alarm);
+}
+
+/* No pulse anywhere in the archive, including on a missed day. The dial is allowed
+   to breathe on failure because exactly one slice is ever failing; here it would be
+   dozens of dots on screen at once, and the one rule this codebase holds to is that
+   motion is never ambient. Colour and a word carry it instead. */
+
+.logs__chevron {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-right: 1.5px solid var(--text-faint);
+  border-bottom: 1.5px solid var(--text-faint);
+  transform: rotate(45deg);
+  transition: transform 260ms var(--ease-out);
+}
+
+.logs__row[aria-expanded="true"] .logs__chevron {
+  transform: rotate(-135deg);
+}
+
+/* ------------------------------------------------------------- day rows ---- */
+
+.logs__section {
+  margin-top: clamp(26px, 3.4vw, 38px);
+}
+
+.logs__section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.logs__section-title {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.logs__section-note {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.logs__month {
+  margin-top: clamp(22px, 3vw, 30px);
+}
+
+.logs__month-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.logs__month-tally {
+  margin: 5px 0 10px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.logs__days {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+/* `all: unset` first so a <button> brings no UA styling, then the layout. Inside a
+   button every child is a <span>: the element's content model is phrasing content,
+   and a <div> inside a <button> is invalid HTML even where the browser tolerates it. */
+.logs__row {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "date  marks"
+    "main  main"
+    "facts facts";
+  gap: 7px 14px;
+  width: 100%;
+  padding: 13px 4px 14px;
+  border-bottom: 1px solid var(--hairline-soft);
+  cursor: pointer;
+  transition: background 160ms var(--ease-out);
+}
+
+.logs__row:hover {
+  background: color-mix(in srgb, var(--panel) 65%, transparent);
+}
+
+/* Inset so the ring traces the row rather than boxing it, and so focusing a row
+   never shifts the layout. Same offset the rail segments use. */
+.logs__row:focus-visible {
+  outline: 2px solid var(--study);
+  outline-offset: -2px;
+  background: var(--panel);
+}
+
+.logs__date {
+  grid-area: date;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: 0;
+}
+
+.logs__date-weekday {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.logs__date-day {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.logs__date-year {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.logs__main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.logs__main-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.logs__focused {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.logs__eff {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* The same bar the dock draws: track is planned, lit is focus, and the dim hatched
+   remainder is waste. Reused here so a day reads the same way at both scales. */
+.logs__bar {
+  position: relative;
+  height: var(--logs-bar);
+  border-radius: 2px;
+  background: var(--hairline-soft);
+  overflow: hidden;
+}
+
+.logs__bar-focus {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--study);
+  /* Same 250ms linear transition as `.daybar__fill`: the live card's bar is redrawn four
+     times a second and would otherwise step. */
+  transition: width var(--tick) linear;
+}
+
+.logs__bar-waste {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: repeating-linear-gradient(-45deg, var(--alarm) 0 2px, transparent 2px 5px);
+  opacity: 0.5;
+  transition: left var(--tick) linear, width var(--tick) linear;
+}
+
+.logs__facts {
+  grid-area: facts;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.logs__fact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+/* A missed block is the app's red state and it stays red wherever it appears. It is
+   named rather than coloured alone, so the row still reads correctly without it. */
+.logs__fact--missed {
+  color: var(--alarm);
+}
+
+/* --------------------------------------------------------------- panel ----- */
+
+.logs__panel {
+  padding: 2px 4px 18px;
+  animation: logs-open 260ms var(--ease-out) both;
+}
+
+@keyframes logs-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.logs__panel-note {
+  margin: 0 0 14px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-faint);
+}
+
+.logs__block + .logs__block {
+  margin-top: 16px;
+}
+
+.logs__block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 6px;
+}
+
+.logs__swatch {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 1px;
+  transform: translateY(1px);
+}
+
+.logs__block-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.logs__block-status {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.logs__block-status--missed {
+  color: var(--alarm);
+}
+
+/* -------------------------------------------------------------- actions ---- */
+
+/* `.hint` draws the dashed box; only the lead-in needs its own weight. */
+.logs__empty-head {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.logs__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: clamp(26px, 3.4vw, 40px);
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* The inline confirm. No `window.confirm`: a native dialog is owned by the
+   browser, not the page, and inside an Android WebView it renders as a bare system
+   box that looks like the app has crashed. */
+.logs__warn {
+  flex: 1 1 100%;
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--alarm) 45%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--alarm) 8%, var(--panel));
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.logs__warn strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.logs__note {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-faint);
+}
+
+/* ----------------------------------------------------------- responsive ---- */
+
+/* 390px is a phone: one column, everything on its own line. 760px is where a day
+   row has room for four aligned columns, and where the numbers stop wrapping. The
+   facts column is a fixed width rather than `auto` so every row's block count lands in
+   the same place — the archive is read by scanning down a column, not by reading
+   across. */
+@media (min-width: 760px) {
+  .logs__row {
+    /* `facts` and `marks` are sized to their content, not given fixed tracks. A fixed
+       260px was chosen so every row's block count would land in the same place, but the
+       row with a PERFECT or MISSED chip does not fit inside it: the chip is in the
+       neighbouring `marks` area, the facts could not shrink (`nowrap`), and the two
+       overprinted — "14/14 water" underneath a PERFECT badge. Content-sized tracks keep
+       the columns aligned across rows, because every row carries the same three facts,
+       and they cannot overflow into each other. */
+    grid-template-columns: 118px minmax(140px, 1fr) max-content max-content;
+    grid-template-areas: "date main facts marks";
+    align-items: center;
+    gap: 22px;
+    padding: 14px 4px;
+  }
+
+  .logs__marks {
+    justify-content: flex-end;
+  }
+
+  .logs__facts {
+    justify-content: flex-end;
+    gap: 18px;
+    flex-wrap: nowrap;
+  }
+}
+
+/* ------------------------------------------------------- reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global rule already collapses durations; this removes the transform too,
+     so the panel appears rather than arriving from somewhere. */
+  .logs__panel {
+    animation: none;
+  }
+
+  .logs__chevron {
+    transition: none;
+  }
+}

@@ -1,0 +1,34 @@
+ext {
+    minSdkVersion = 24
+    compileSdkVersion = 36
+    // 32, deliberately, and not an oversight.
+    //
+    // Android 13 (API 33) introduced POST_NOTIFICATIONS as a *runtime* permission: the
+    // user has to approve it or every notification is silently dropped. The gate only
+    // applies to apps whose targetSdk is 33 or higher — below that, the OS grants
+    // notifications at install and the app never has to ask. Same story for
+    // SCHEDULE_EXACT_ALARM, which is granted automatically below 33 and otherwise
+    // requires a detour into system settings.
+    //
+    // Targeting 32 is what makes "just work, no permission dialog" true on every Android
+    // version. compileSdk stays 36, so every modern API is still available — targetSdk
+    // governs runtime behaviour, not which classes exist.
+    //
+    // The cost is real and worth stating: Google Play will not accept an upload whose
+    // targetSdk is below 34. This is a sideloaded personal app, so nothing is lost — but
+    // if you ever want Play distribution, put this back to 34 and accept the one-time
+    // permission dialog. That is the only trade, and it is a distribution decision
+    // rather than a technical one.
+    targetSdkVersion = 32
+    androidxActivityVersion = '1.11.0'
+    androidxAppCompatVersion = '1.7.1'
+    androidxCoordinatorLayoutVersion = '1.3.0'
+    androidxCoreVersion = '1.17.0'
+    androidxFragmentVersion = '1.8.9'
+    coreSplashScreenVersion = '1.2.0'
+    androidxWebkitVersion = '1.14.0'
+    junitVersion = '4.13.2'
+    androidxJunitVersion = '1.3.0'
+    androidxEspressoCoreVersion = '3.7.0'
+    cordovaAndroidVersion = '14.0.1'
+}
